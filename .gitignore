@@ -1,0 +1,5 @@
+dataset/miniImagenet/data/
+old/
+*.pkl
+*.pyc
+
