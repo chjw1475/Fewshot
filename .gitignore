@@ -1,5 +1,6 @@
 dataset/miniImagenet/data/
-old/
+olds/
+.idea/
 *.pkl
 *.pyc
 
