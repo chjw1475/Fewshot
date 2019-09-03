@@ -1,6 +1,7 @@
 dataset/miniImagenet/data/
 olds/
 .idea/
+*/.ipynb_checkpoints/
 *.pkl
 *.pyc
 
