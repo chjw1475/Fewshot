@@ -9,11 +9,3 @@ clash test 2
 
 
 edit local
-
-
-aksdjfoie
-
-lksjdfkla
-
-hyun1
-hj1
