@@ -150,41 +150,28 @@ elif args.command == 'train':
         cond1 = (np.mean(val_acc) > best_acc)
         cond2 = (np.mean(val_loss) < best_loss)
 
+        f = open('results/' + args.exp_name + '/log.txt', 'a')
+        print('{} {:.5f} {:.5f}'.format((ep + 1) * args.n_episodes, np.mean(val_loss), np.mean(val_acc)), file=f)
+        f.close()
+
         if cond1 or cond2:
             best_acc = np.mean(val_acc)
             best_loss = np.mean(val_loss)
             print('best val loss:{:.5f}, acc:{:.5f}'.format(best_loss, best_acc))
 
             # save model
-            torch.save(model.state_dict(), 'results/{:s}/models/{:s}_{:0>6d}_model.t7'.format(args.exp_name, args.alg, (ep + 1) * args.n_episodes))
-
-            f = open('results/' + args.exp_name + '/log.txt', 'a')
-            if 'cycle' in args.alg:
-                print('{} {:.5f} {:.5f} {:.5f} {:.5f}'.format((ep + 1) * args.n_episodes, best_loss,
-                                                              np.mean(val_loss_orig), np.mean(val_loss_reverse),
-                                                              best_acc), file=f)
-            else:
-                print('{} {:.5f} {:.5f}'.format((ep + 1) * args.n_episodes, best_loss, best_acc), file=f)
-            f.close()
-
+            torch.save(model.state_dict(),
+                       'results/%s/models/bestmodel_model.t7' % (args.exp_name, args.alg, (ep + 1) * args.n_episodes))
             wait = 0
 
         else:
             wait += 1
             if ep % 100 == 0:
-                torch.save(model.state_dict(), 'results/{:s}/models/{:s}_{:0>6d}_model.t7'.format(
-                args.exp_name, args.alg, (ep + 1) * args.n_episodes))
-
-                f = open('results/' + args.exp_name + '/log.txt', 'a')
-                if 'cycle' in args.alg:
-                    print('{} {:.5f} {:.5f} {:.5f} {:.5f}'.format((ep + 1) * args.n_episodes, np.mean(val_loss),
-                                                                  np.mean(val_loss_orig), np.mean(val_loss_reverse),
-                                                                  np.mean(val_acc)), file=f)
-                else:
-                    print('{} {:.5f} {:.5f}'.format((ep + 1) * args.n_episodes, np.mean(val_loss), np.mean(val_acc)), file=f)
-                f.close()
+                torch.save(model.state_dict(),
+                           'results/%s/models/%s_%06d_model.t7' % (args.exp_name, args.alg, (ep + 1) * args.n_episodes))
 
         if wait > args.patience and ep > args.n_epochs:
             break
+
 else:
     print('{} : this command is unavailable'.format(args.command))
