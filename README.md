@@ -9,7 +9,6 @@ clash test 2
 
 
 edit local
-
 ## Requirements
 * Python 3 (3.6)
 * Pytorch 1.0.1
