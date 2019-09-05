@@ -1,4 +1,3 @@
-
 # imports base packages
 import argparse, random
 import torch
@@ -14,7 +13,7 @@ from models import models
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--exp_name', type=str, dest='exp_name', default='debug', help="model_name")
 parser.add_argument('-g', '--gpu', type=int, dest='gpu', default=1, help="gpu")
-parser.add_argument('--n_epochs', type=int, default=2000, help="epoch") # 2000
+parser.add_argument('--n_epochs', type=int, default=2000, help="epoch")  # 2000
 parser.add_argument('--alg', type=str, default='cycle_3', help="alg")
 parser.add_argument('--command', type=str, default='train', help="train or infer")
 parser.add_argument('-l', '--load', type=str, dest='load_model', default='', help='name of model')
@@ -141,7 +140,7 @@ elif args.command == 'train':
             val_loss, val_acc = evaluation(args, ep, model, loader_val, dataset='val')
 
         print('\nepoch:{}, tr_loss:{:.5f}, tr_acc:{:.5f}, val_loss:{:.5f}, val_acc:{:.5f}'
-              .format(ep+1, np.mean(tr_loss), np.mean(tr_acc), np.mean(val_loss), np.mean(val_acc)))
+              .format(ep + 1, np.mean(tr_loss), np.mean(tr_acc), np.mean(val_loss), np.mean(val_acc)))
 
         # Model Save and Stop Criterion
         # save : val_acc가 best 보다 잘 나왔을 때

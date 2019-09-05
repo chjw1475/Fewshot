@@ -1,39 +1,41 @@
-#-------------------------------------
+# -------------------------------------
 # Project: Transductive Propagation Network for Few-shot Learning
 # Date: 2019.1.11
 # Author: Yanbin Liu
 # All Rights Reserved
-#-------------------------------------
+# -------------------------------------
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 # from torch.autograd import Variable
 import numpy as np
 
+
 class CNNEncoder(nn.Module):
     """Encoder for feature embedding"""
+
     def __init__(self):
         super(CNNEncoder, self).__init__()
         self.layer1 = nn.Sequential(
-                        nn.Conv2d(3, 64, kernel_size=3, padding=1),
-                        nn.BatchNorm2d(64),
-                        nn.ReLU(),
-                        nn.MaxPool2d(2))
+            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
         self.layer2 = nn.Sequential(
-                        nn.Conv2d(64,64,kernel_size=3,padding=1),
-                        nn.BatchNorm2d(64),
-                        nn.ReLU(),
-                        nn.MaxPool2d(2))
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
         self.layer3 = nn.Sequential(
-                        nn.Conv2d(64,64,kernel_size=3,padding=1),
-                        nn.BatchNorm2d(64),
-                        nn.ReLU(),
-                        nn.MaxPool2d(2))
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
         self.layer4 = nn.Sequential(
-                        nn.Conv2d(64,64,kernel_size=3,padding=1),
-                        nn.BatchNorm2d(64),
-                        nn.ReLU(),
-                        nn.MaxPool2d(2))
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
 
     def forward(self, x):
         """x: bs*3*84*84 """
@@ -41,7 +43,7 @@ class CNNEncoder(nn.Module):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        
+
         return out
 
 
@@ -80,6 +82,7 @@ class CNNEncoder_average(nn.Module):
 
         return out
 
+
 def preprocess_input(inputs):
     """
     inputs are preprocessed. Set number of classes, support, queries.
@@ -102,8 +105,10 @@ def preprocess_input(inputs):
 
     return num_classes, num_support, num_queries, concat_s_q
 
+
 class Prototypical(nn.Module):
     """Main Module for prototypical networlks"""
+
     def __init__(self, args, optimizer, encoder=CNNEncoder):
         super(Prototypical, self).__init__()
         self.im_width, self.im_height, self.channels = list(map(int, args.x_dim.split(',')))
@@ -129,16 +134,16 @@ class Prototypical(nn.Module):
         self.q_labels = inputs[-1]
 
         ## encoding part
-        emb   = self.encoder(self.concat_s_q) # emb shape 100, 64, 5, 5
+        emb = self.encoder(self.concat_s_q)  # emb shape 100, 64, 5, 5
         # emb_s : (Ns, 64, 5, 5), emb_q : (Nq, 64, 5, 5)
-        emb_s, emb_q = torch.split(emb, [self.num_classes*self.num_support, self.num_classes*self.num_queries], 0)
+        emb_s, emb_q = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
         ## prototype part
         emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
-        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))    # (Nq, 64*5*5)
+        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
         assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
-        emb_s = torch.unsqueeze(emb_s, 0)     # 1xNxD, (1, Nc, 64*5*5)
-        emb_q = torch.unsqueeze(emb_q, 1)     # Nx1xD, (Nq, 1, 64*5*5)
+        emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
+        emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
 
         return emb_s, emb_q
 
@@ -186,8 +191,10 @@ class Prototypical(nn.Module):
 
         return acc
 
+
 class PrototypicalCycle(Prototypical):
     """Main Module for prototypical networlks"""
+
     def __init__(self, args, optimizer, encoder=CNNEncoder):
         super(PrototypicalCycle, self).__init__(args, optimizer, encoder)
 
@@ -211,19 +218,19 @@ class PrototypicalCycle(Prototypical):
         _, self.s_labels, _, self.q_labels = inputs
 
         ## encoding part
-        emb   = self.encoder(self.concat_s_q) # emb shape 100, 64, 5, 5
+        emb = self.encoder(self.concat_s_q)  # emb shape 100, 64, 5, 5
         # emb_s : (Ns, 64, 5, 5), emb_q : (Nq, 64, 5, 5)
-        emb_s, emb_q = torch.split(emb, [self.num_classes*self.num_support, self.num_classes*self.num_queries], 0)
+        emb_s, emb_q = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
         ## prototype part
         emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
-        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))    # (Nq, 64*5*5)
+        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
         assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
-        emb_s = torch.unsqueeze(emb_s, 0)     # 1xNxD, (1, Nc, 64*5*5)
-        emb_q = torch.unsqueeze(emb_q, 1)     # Nx1xD, (Nq, 1, 64*5*5)
+        emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
+        emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
 
         # cyclic part
-        emb_ss, emb_qq = torch.split(emb, [self.num_classes*self.num_support, self.num_classes*self.num_queries], 0)
+        emb_ss, emb_qq = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
         emb_qq = emb_qq.view(self.num_classes, self.num_queries, np.prod(emb_qq.shape[1:])).mean(1)  # (Nc, 64*5*5)
         emb_ss = emb_ss.view(-1, np.prod(emb_ss.shape[1:]))  # (Ns, 64*5*5)
@@ -274,8 +281,10 @@ class PrototypicalCycle(Prototypical):
 
         return acc
 
+
 class PrototypicalCycleQueryProto(PrototypicalCycle):
     """Main Module for prototypical networlks"""
+
     def __init__(self, args, optimizer, encoder=CNNEncoder):
         super(PrototypicalCycleQueryProto, self).__init__(args, optimizer, encoder)
 
@@ -299,20 +308,20 @@ class PrototypicalCycleQueryProto(PrototypicalCycle):
         _, self.s_labels, _, self.q_labels = inputs
 
         ## encoding part
-        emb   = self.encoder(self.concat_s_q) # emb shape 100, 64, 5, 5
+        emb = self.encoder(self.concat_s_q)  # emb shape 100, 64, 5, 5
         # emb_s : (Ns, 64, 5, 5), emb_q : (Nq, 64, 5, 5)
-        emb_s, emb_q = torch.split(emb, [self.num_classes*self.num_support, self.num_classes*self.num_queries], 0)
+        emb_s, emb_q = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
         ## prototype part
         emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
-        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))    # (Nq, 64*5*5)
+        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
         assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
-        emb_s = torch.unsqueeze(emb_s, 0)     # 1xNxD, (1, Nc, 64*5*5)
-        emb_q = torch.unsqueeze(emb_q, 1)     # Nx1xD, (Nq, 1, 64*5*5)
+        emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
+        emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
         dist = ((emb_q - emb_s) ** 2).mean(2)  # NxNxD -> NxN, (Nq, Nc)
 
         ## cyclic part (prototype of inferenced query)
-        emb_ss, emb_qq = torch.split(emb, [self.num_classes*self.num_support, self.num_classes*self.num_queries], 0)
+        emb_ss, emb_qq = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
         # make the prototype of embedded query
         emb_merge = torch.tensor([]).view(0, np.prod(emb_qq.shape[1:])).cuda(0)
