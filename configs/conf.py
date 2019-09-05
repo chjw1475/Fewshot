@@ -9,24 +9,24 @@ class configuration:
     def __init__(self):
 
         ## base settings
-        #self.data_augmentation = False
-        self.num_predictions = 20
+        # self.data_augmentation = False
+        # self.num_predictions = 20
         self.epoch_start = 0
 
         # parse gpu
         self.gpu = 0
-        
+
         # model params
         self.n_examples = 600
         self.x_dim = "84,84,3"
 
         # training hyper-parameters
-        self.n_episodes = 100 # test interval
+        self.n_episodes = 100  # valid interval
         self.n_way = 5
         self.n_shot = 5
-        self.n_query = 15 # 클래스당
+        self.n_query = 15  # 클래스당
         self.n_epochs = 2000
-        
+
         # test hyper-parameters
         self.n_test_way = 5
         self.n_test_shot = 5
@@ -57,7 +57,7 @@ class configuration:
             os.makedirs('results/' + self.exp_name)
         else:
             # when exp_name is overlaped
-            if self.force:
+            if self.force == 'True':
                 shutil.rmtree('results/' + self.exp_name)
                 os.makedirs('results/' + self.exp_name)
             elif self.command == 'infer':
@@ -65,21 +65,19 @@ class configuration:
             else:
                 print('experiment name is overlaped...')
                 sys.exit(1)
-            
+
         if not os.path.exists('results/' + self.exp_name + '/' + 'models'):
             os.makedirs('results/' + self.exp_name + '/' + 'models')
-#         os.system('cp main_train.py results' + '/' + self.exp_name + '/' + 'main_train.py.backup')
-#         os.system('cp models/models.py results' + '/' + self.exp_name + '/' + 'models.py.backup')
-#         os.system('cp main.py results' + '/' + self.exp_name + '/' + 'main.py.backup')
-        
+        #         os.system('cp main_train.py results' + '/' + self.exp_name + '/' + 'main_train.py.backup')
+        #         os.system('cp models/models.py results' + '/' + self.exp_name + '/' + 'models.py.backup')
+        #         os.system('cp main.py results' + '/' + self.exp_name + '/' + 'main.py.backup')
+
         f = open('results/' + self.exp_name + '/log.txt', 'a')
         # print(self.__dict__, file=f)
         for key in self.__dict__.keys():
             print('{} = {}'.format(key, self.__dict__[key]), file=f)
         f.close()
 
-        
-        
     '''
         ## base settings
         self.batch_size = 32

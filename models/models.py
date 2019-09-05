@@ -342,3 +342,45 @@ class PrototypicalCycleQueryProto(PrototypicalCycle):
         emb_ss = torch.unsqueeze(emb_ss, 1)  # Nx1xD, (Ns, 1, 64*5*5)
 
         return emb_s, emb_q, emb_qq, emb_ss
+
+
+class PrototypicalRecommendation(Prototypical):
+    """Main Module for prototypical networlks"""
+
+    def __init__(self, args, optimizer, encoder=CNNEncoder):
+        super(PrototypicalRecommendation, self).__init__(args, optimizer, encoder)
+        self.im_width, self.im_height, self.channels = list(map(int, args.x_dim.split(',')))
+        self.args = args
+        self.encoder = encoder()
+        self.optimizer = optimizer(self.parameters(), lr=args.lr)
+        self.fc1 = nn.Linear()
+    def forward(self, inputs):
+        """
+        get embedding of support and query
+        :param
+            inputs:
+                support:    (N_way*N_shot)x3x84x84
+                s_labels:   (N_way*N_shot)xN_way, one-hot [25, 5]
+                query:      (N_way*N_query)x3x84x84
+                q_labels:   (N_way*N_query)xN_way, one-hot
+        :return:
+            emb_support : (1, Nc, 64*5*5)
+            emb_query : (Nq, 1, 64*5*5)
+        """
+        ## process inputs
+        self.num_classes, self.num_support, self.num_queries, self.concat_s_q = preprocess_input(inputs)
+        self.q_labels = inputs[-1]
+
+        ## encoding part
+        emb = self.encoder(self.concat_s_q)  # emb shape 100, 64, 5, 5
+        # emb_s : (Ns, 64, 5, 5), emb_q : (Nq, 64, 5, 5)
+        emb_s, emb_q = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
+
+        ## prototype part
+        emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
+        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
+        assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
+        emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
+        emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
+        #test2
+        return emb_s, emb_q

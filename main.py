@@ -17,7 +17,7 @@ parser.add_argument('--n_epochs', type=int, default=2000, help="epoch")  # 2000
 parser.add_argument('--alg', type=str, default='cycle_3', help="alg")
 parser.add_argument('--command', type=str, default='train', help="train or infer")
 parser.add_argument('-l', '--load', type=str, dest='load_model', default='', help='name of model')
-parser.add_argument('-f', '--force', dest='force', action='store_true', help='remove by force (default : False)')
+parser.add_argument('-f', '--force', type=str, dest='force', default='False', help='remove by force (default : False)')
 get_args = parser.parse_args()
 
 args = configuration()
@@ -76,8 +76,12 @@ elif args.alg == 'proto_2':
     model = models.Prototypical(args, optimizer=torch.optim.Adam, encoder=models.CNNEncoder_average)
 elif args.alg in ['cycle_2', 'cycle_3']:
     model = models.PrototypicalCycleQueryProto(args, optimizer=torch.optim.Adam)
+elif args.alg in ['recommendation_model']:
+    model = models.PrototypicalRecommendation(args, optimizer=torch.optim.Adam)
+    models.PrototypicalRecommendation()
 else:
     print('model error')
+
 model.cuda(0)
 
 # optimizer scheduler
@@ -157,17 +161,13 @@ elif args.command == 'train':
             best_acc = np.mean(val_acc)
             best_loss = np.mean(val_loss)
             print('best val loss:{:.5f}, acc:{:.5f}'.format(best_loss, best_acc))
-
             # save model
-            torch.save(model.state_dict(),
-                       'results/%s/models/bestmodel_model.t7' % (args.exp_name, args.alg, (ep + 1) * args.n_episodes))
+            torch.save(model.state_dict(),'results/%s/models/bestmodel_model.t7' % (args.exp_name))
             wait = 0
-
         else:
             wait += 1
             if ep % 100 == 0:
-                torch.save(model.state_dict(),
-                           'results/%s/models/%s_%06d_model.t7' % (args.exp_name, args.alg, (ep + 1) * args.n_episodes))
+                torch.save(model.state_dict(),'results/%s/models/%s_%06d_model.t7' % (args.exp_name, args.alg, (ep + 1) * args.n_episodes))
 
         if wait > args.patience and ep > args.n_epochs:
             break

@@ -1,5 +1,5 @@
 dataset/miniImagenet/data/
-olds/
+results/
 .idea/
 */.ipynb_checkpoints/
 *.pkl
