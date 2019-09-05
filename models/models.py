@@ -376,12 +376,17 @@ class PrototypicalRecommendation(Prototypical):
         # emb_s : (Ns, 64, 5, 5), emb_q : (Nq, 64, 5, 5)
         emb_s, emb_q = torch.split(emb, [self.num_classes * self.num_support, self.num_classes * self.num_queries], 0)
 
-        ## prototype part
-        emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
-        emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
-        assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
-        emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
-        emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
-        # branch test
+
+        # todo recommandation model implement
+        # (1) Random initialize ClassMatrix
+        # (2) Cal ClassMatrix by SVD / (할까 말까 고민중) embedding network weight update
+        # (3) inference Queryset rating / embedding network weight update
+
+
+        # emb_s = emb_s.view(self.num_classes, self.num_support, np.prod(emb_s.shape[1:])).mean(1)  # (5, 64*5*5)
+        # emb_q = emb_q.view(-1, np.prod(emb_q.shape[1:]))  # (Nq, 64*5*5)
+        # assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
+        # emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
+        # emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
 
         return emb_s, emb_q
