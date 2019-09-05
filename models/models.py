@@ -382,5 +382,6 @@ class PrototypicalRecommendation(Prototypical):
         assert emb_s.shape[-1] == emb_q.shape[-1], 'the dimension of embeddings must be equal'
         emb_s = torch.unsqueeze(emb_s, 0)  # 1xNxD, (1, Nc, 64*5*5)
         emb_q = torch.unsqueeze(emb_q, 1)  # Nx1xD, (Nq, 1, 64*5*5)
-        #test2
+        # branch test
+        
         return emb_s, emb_q
